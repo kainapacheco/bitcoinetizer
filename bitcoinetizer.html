@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bitcoin - Duelo de Ideias</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bitcoin-orange: #F7931A;
+            --dark-bg: #121212;
+            --card-bg: #1E1E1E;
+            --text-color: #EAEAEA;
+            --text-muted: #B0B0B0;
+            --concept-blue: #5a9bd5;
+            --analogy-bg: rgba(247, 147, 26, 0.05);
+            --font-main: 'Poppins', sans-serif;
+            --border-color: #333;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: var(--font-main); background-color: var(--dark-bg);
+            color: var(--text-color); line-height: 1.7; -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        #app {
+            display: flex; flex-direction: column; justify-content: center;
+            align-items: center; min-height: 100vh; padding: 20px;
+            transition: background-color 0.5s ease;
+        }
+
+        .hidden { display: none !important; }
+
+        /* --- Loading Screen --- */
+        #loading-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--dark-bg); display: flex;
+            justify-content: center; align-items: center; z-index: 1000;
+            transition: opacity 0.5s ease;
+        }
+        .coin {
+            width: 80px; height: 80px; position: relative;
+            transform-style: preserve-3d; animation: spin 2s infinite linear;
+        }
+        .coin-face {
+            position: absolute; width: 100%; height: 100%;
+            border-radius: 50%; background-color: var(--bitcoin-orange);
+            display: flex; justify-content: center; align-items: center;
+            font-size: 48px; font-weight: bold; color: white;
+            backface-visibility: hidden;
+        }
+        .front { transform: translateZ(4px); }
+        .back { transform: rotateY(180deg) translateZ(4px); }
+        .side {
+            position: absolute; width: 100%; height: 100%;
+            border-radius: 50%; background: #c67614;
+            transform: rotateY(90deg) translateZ(0);
+            width: 8px; left: 36px;
+        }
+        @keyframes spin { from { transform: rotateY(0deg); } to { transform: rotateY(360deg); } }
+
+
+        /* --- Start & End Screens --- */
+        #start-screen, #end-screen {
+            text-align: center; animation: fadeIn 1s ease-in-out; max-width: 600px;
+        }
+        .logo-container { margin-bottom: 20px; }
+        .logo {
+            width: 80px; height: 80px; background-color: var(--bitcoin-orange);
+            border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            font-size: 48px; font-weight: bold; color: white; margin: 0 auto;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2); transform: rotate(-15deg);
+        }
+        #start-screen h1, #end-screen h1 { font-size: 2.2rem; color: white; margin-bottom: 10px; }
+        #start-screen h2, #end-screen h2 { font-size: 1.5rem; color: var(--bitcoin-orange); margin-bottom: 15px; font-weight: 600; }
+        #start-screen p, #end-screen p { font-size: 1.1rem; color: var(--text-muted); margin: 0 auto 30px auto; }
+
+        .btn {
+            background-color: var(--bitcoin-orange); color: white; border: none; padding: 15px 30px;
+            font-size: 1.2rem; font-weight: 600; font-family: var(--font-main);
+            border-radius: 50px; cursor: pointer; transition: transform 0.2s ease, background-color 0.2s ease;
+            box-shadow: 0 4px 15px rgba(247, 147, 26, 0.3);
+        }
+        .btn:hover { transform: translateY(-3px); background-color: #ff9d2b; }
+        .btn:active { transform: translateY(0); }
+        .btn-secondary { background-color: var(--card-bg); box-shadow: none; margin-top: 20px; }
+        .btn-secondary:hover { background-color: #3a3a3a; }
+
+        /* --- UI Controls: Menu and Back Button --- */
+        .ui-controls {
+            position: fixed; top: 20px; left: 20px; right: 20px;
+            display: flex; justify-content: space-between; align-items: center;
+            z-index: 100;
+        }
+        .menu-btn, .back-btn {
+            background: rgba(30, 30, 30, 0.7); backdrop-filter: blur(5px);
+            border: 1px solid var(--border-color); color: var(--text-color);
+            width: 44px; height: 44px; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            cursor: pointer; transition: background-color 0.2s ease;
+        }
+        .menu-btn:hover, .back-btn:hover { background-color: var(--card-bg); }
+        .menu-btn svg, .back-btn svg { width: 24px; height: 24px; }
+        
+        .side-menu {
+            position: fixed; top: 0; left: -300px; width: 300px; height: 100%;
+            background-color: var(--card-bg); z-index: 200;
+            transition: left 0.3s ease-in-out;
+            padding: 20px; box-shadow: 5px 0 15px rgba(0,0,0,0.3);
+            overflow-y: auto;
+        }
+        .side-menu.open { left: 0; }
+        .menu-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .menu-header h3 { font-size: 1.5rem; color: var(--bitcoin-orange); }
+        #close-menu-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; }
+        #close-menu-btn svg { width: 30px; height: 30px; }
+        
+        #menu-nav ul { list-style: none; }
+        #menu-nav li button {
+            width: 100%; text-align: left; background: none; border: none; color: var(--text-color);
+            padding: 12px 10px; font-family: var(--font-main); font-size: 1rem;
+            cursor: pointer; border-radius: 8px; transition: background-color 0.2s;
+        }
+        #menu-nav li button:hover { background-color: var(--dark-bg); }
+        .menu-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 150;
+            opacity: 0; visibility: hidden; transition: opacity 0.3s ease;
+        }
+        .menu-overlay.open { opacity: 1; visibility: visible; }
+        
+
+        /* --- Game Screen --- */
+        #game-screen { width: 100%; max-width: 800px; padding-top: 60px; } /* Padding for UI controls */
+        .level-progress { text-align: center; margin-bottom: 20px; animation: fadeIn 0.5s; }
+        .level-indicator { font-weight: 600; color: var(--bitcoin-orange); }
+        .level-title { text-align: center; font-size: 1.8rem; margin-bottom: 30px; color: white; animation: fadeIn 0.5s; }
+
+        .duel-card {
+            background-color: var(--card-bg); padding: 25px; border-radius: 16px;
+            margin-bottom: 20px; border-left: 5px solid var(--text-muted); transition: all 0.5s ease;
+        }
+        .duel-card.realidade { border-left-color: var(--bitcoin-orange); }
+
+        .card-title {
+            font-weight: 600; font-size: 1.1rem; color: var(--text-muted);
+            margin-bottom: 10px; display: flex; align-items: center;
+        }
+        .card-title.realidade-title { color: var(--bitcoin-orange); }
+        .card-title svg { margin-right: 10px; width: 24px; height: 24px; flex-shrink: 0; }
+        .card-content { color: var(--text-color); }
+        b { color: var(--bitcoin-orange); font-weight: 600; }
+        
+        .action-area {
+            text-align: center;
+            margin-top: 30px;
+            min-height: 60px;
+            margin-bottom: 40px;
+        }
+        
+        /* --- Key Concept, Analogy & Doubts Area --- */
+        .extra-content-area {
+            margin-top: 30px; background-color: rgba(0,0,0,0.2);
+            border-radius: 16px; padding: 25px; border: 1px solid var(--border-color);
+        }
+        .key-concept, .analogy { padding-left: 20px; margin-bottom: 25px; }
+        .key-concept { border-left: 5px solid var(--concept-blue); }
+        .analogy { 
+            border-left: 5px solid var(--bitcoin-orange);
+            background-color: var(--analogy-bg); padding: 20px; border-radius: 8px;
+        }
+        .section-title {
+            font-size: 1.2rem; font-weight: bold; margin-bottom: 10px;
+            display: flex; align-items: center;
+        }
+        .section-title svg { width: 24px; height: 24px; margin-right: 10px; }
+        .key-concept-title { color: var(--concept-blue); }
+        .analogy-title { color: var(--bitcoin-orange); }
+        
+        .accordion-item { border-bottom: 1px solid var(--border-color); }
+        .accordion-item:last-child { border-bottom: none; }
+
+        .accordion-button {
+            width: 100%; background: none; border: none; text-align: left;
+            padding: 15px 5px; font-family: var(--font-main); color: var(--text-color);
+            font-size: 1.1rem; font-weight: 600; cursor: pointer;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .accordion-button .arrow { transition: transform 0.3s ease; }
+        .accordion-button.active .arrow { transform: rotate(180deg); }
+        .accordion-content {
+            max-height: 0; overflow: hidden;
+            transition: max-height 0.4s ease-out, padding 0.3s ease-out;
+            padding: 0 15px; color: var(--text-muted);
+        }
+        .accordion-content p { padding-bottom: 10px; }
+
+        /* --- Animations --- */
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn 0.6s ease-in-out forwards; }
+        .slide-up { animation: slideUp 0.6s ease-in-out forwards; }
+        
+        /* --- Responsiveness --- */
+        @media (min-width: 768px) {
+            #start-screen h1 { font-size: 3.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div id="loading-screen">
+        <div class="coin">
+            <div class="coin-face front">₿</div>
+            <div class="coin-face back">₿</div>
+            <div class="side"></div>
+        </div>
+    </div>
+
+    <div class="ui-controls hidden">
+        <button class="menu-btn" id="open-menu-btn" aria-label="Abrir Menu">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
+        </button>
+        <button class="back-btn hidden" id="back-btn" aria-label="Voltar">
+             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" /></svg>
+        </button>
+    </div>
+
+    <div class="side-menu" id="side-menu">
+        <div class="menu-header">
+            <h3>Níveis</h3>
+            <button id="close-menu-btn" aria-label="Fechar Menu">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+        </div>
+        <nav id="menu-nav"><ul></ul></nav>
+    </div>
+    <div class="menu-overlay" id="menu-overlay"></div>
+
+    <div id="app">
+        <!-- Start Screen -->
+        <div id="start-screen" class="hidden">
+            <div class="logo-container"><div class="logo">₿</div></div>
+            <h1>Bitcoin</h1>
+            <!-- MODIFICAÇÃO 1: Textos da página inicial alterados -->
+            <h2>Para quem ainda não entendeu qual é a real do Bitcoin...</h2>
+            <p>Uma jornada interativa baseada no livro "Bitcoin: A Moeda na Era Digital", de Fernando Ulrich. Todos nós já nos perguntamos as mesmas coisas, por isso criamos esse passo a passo...</p>
+            <button id="start-btn" class="btn">Começar a Jornada</button>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" class="hidden">
+            <div class="level-progress">
+                <div id="level-indicator" class="level-indicator"></div>
+            </div>
+            <h2 id="level-title" class="level-title"></h2>
+            <div id="duel-container"></div>
+            <div id="extra-content-container" class="hidden"></div>
+            <div id="action-area" class="action-area"></div>
+        </div>
+        
+        <!-- End Screen -->
+        <div id="end-screen" class="hidden">
+            <div class="logo-container"><div class="logo">₿</div></div>
+            <h1>Jornada Concluída!</h1>
+            <p>Parabéns por explorar as profundezas do debate sobre o Bitcoin. A verdadeira revolução não está no preço, mas nas ideias. Continue questionando.</p>
+            <button id="restart-btn" class="btn">Recomeçar a Jornada</button>
+        </div>
+    </div>
+
+    <script>
+        // --- GAME DATA (Conteúdo intacto) ---
+        const gameData = [
+            { level: 1, title: "O Dinheiro que Usamos: A Ilusão da Realidade", duels: [
+                {
+                    argumentoComum: "Meu dinheiro é o Real, emitido e garantido pelo governo. Ele é físico (notas/moedas) ou um saldo seguro no banco. É um sistema sólido.",
+                    contraponto: "Essa percepção, embora comum, esconde a verdadeira natureza do nosso dinheiro. A maior parte do que usamos não é física. São apenas dígitos nos sistemas dos bancos, a chamada <b>moeda escritural</b>. No Reino Unido, ela representa mais de 95% de todo o dinheiro. Nosso sistema já é majoritariamente digital e intangível, mas de uma forma centralizada e frágil.",
+                    conceitoChave: "RESERVAS FRACIONÁRIAS: É o mecanismo que permite aos bancos comerciais criar dinheiro. Eles são obrigados a guardar apenas uma fração (a 'reserva' ou 'compulsório') dos depósitos e podem emprestar o restante. Ao emprestar, criam um novo depósito, expandindo a oferta monetária.",
+                    penseAssim: "Imagine que você deposita <b>R$100</b> no banco. O banco guarda R$10 e empresta R$90 para João. Agora, você tem R$100 na sua conta, e João tem R$90 na dele. A economia, que antes tinha R$100, agora tem R$190 em depósitos. O dinheiro foi criado a partir de uma dívida, sem que nova riqueza fosse produzida.",
+                    duvidas: [
+                        { q: "Qual o problema real disso?", a: "Isso causa os <b>ciclos econômicos</b>. A expansão artificial do crédito cria um 'boom' de investimentos que não é sustentado por poupança real. Cedo ou tarde, a realidade se impõe e a 'bolha' estoura, gerando uma recessão. A crise de 2008 foi um exemplo clássico disso." },
+                        { q: "O nosso dinheiro não tem lastro no ouro?", a: "Não mais. Desde 1971, o mundo vive sob um sistema de <b>'moeda fiduciária'</b>. 'Fiduciário' vem de 'fé'. O valor da moeda se baseia apenas na confiança (ou imposição legal) do governo que a emite. O lastro em ouro foi abandonado para que governos pudessem imprimir dinheiro sem limites." }
+                    ]
+                }
+            ]},
+            { level: 2, title: "A Origem: A História e o Contexto do Bitcoin", duels: [
+                {
+                    argumentoComum: "Bitcoin parece ter surgido do nada em 2008, criado por uma figura anônima. Parece algo improvisado, sem uma base real.",
+                    contraponto: "O surgimento do Bitcoin não foi um acaso, mas o clímax de décadas de pesquisa e uma resposta direta a um contexto específico. Ele foi lançado um mês após a quebra do banco Lehman Brothers, em meio à maior crise financeira desde 1930 e a uma crescente perda de privacidade.",
+                    conceitoChave: "O BLOCO GÊNESE E A IDEIA 'CYPHERPUNK': A intenção de seu criador, Satoshi Nakamoto, fica clara na primeira transação da história do Bitcoin (o 'bloco gênese'). Ele gravou a manchete de um jornal: <b>'THE TIMES 03/JAN/2009 CHANCELLOR ON BRINK OF SECOND BAILOUT FOR BANKS'</b>, uma crítica direta ao resgate dos bancos.",
+                    penseAssim: "Os 'Cypherpunks' eram ativistas que viam a criptografia como uma ferramenta para defender a privacidade e a liberdade individual contra a vigilância de governos e corporações. O Bitcoin é a materialização dessa filosofia: usar a matemática e o código para criar um sistema financeiro fora do controle de qualquer autoridade central.",
+                    duvidas: [
+                        { q: "O que essa crise de 2008 tem a ver com o Bitcoin?", a: "A crise expôs a fragilidade do sistema, onde cidadãos comuns viram seu dinheiro ser desvalorizado para resgatar instituições financeiras. O Bitcoin surgiu como uma alternativa tecnológica a um sistema onde você 'não tem controle algum sobre seu dinheiro'." },
+                        { q: "Quem é Satoshi Nakamoto? A anonimidade não é suspeita?", a: "Satoshi é um pseudônimo. Sua anonimidade foi um presente para o projeto, garantindo sua descentralização. Sem um líder para atacar ou pressionar, a rede pôde crescer de forma orgânica e resiliente. O importante é a força do código, não a identidade do criador." }
+                    ]
+                }
+            ]},
+            { level: 3, title: "A Anatomia do Bitcoin: Como a Mágica Acontece", duels: [
+                {
+                    argumentoComum: "Como posso confiar em algo digital? Se eu tenho um arquivo de música, posso copiá-lo e enviá-lo para várias pessoas. Por que não posso fazer o mesmo com um 'arquivo de bitcoin'?",
+                    contraponto: "Você descreveu perfeitamente o <b>'problema do gasto duplo'</b>, o desafio que impediu a criação de um dinheiro digital descentralizado por décadas. A grande inovação do Bitcoin foi resolver este problema sem a necessidade de uma autoridade central, como um banco, para verificar tudo.",
+                    conceitoChave: "O GASTO DUPLO E O BLOCKCHAIN: O Bitcoin resolve o problema através do blockchain, um livro-razão público e distribuído. Todas as transações são registradas nesse livro, compartilhado por milhares de computadores. Antes de validar uma nova transação, a rede inteira verifica o histórico para garantir que aqueles bitcoins não tenham sido gastos anteriormente.",
+                    penseAssim: "Pense no e-mail: você anexa uma foto e envia. O destinatário recebe uma <b>cópia</b>, e você continua com a original. Com o Bitcoin, é como se, ao 'anexar' a moeda, a sua original desaparecesse da sua posse e aparecesse na do destinatário, com toda a rede testemunhando e registrando o ato em um <b>cartório universal e incorruptível.</b>",
+                    duvidas: [
+                        { q: "O que são as 'chaves' pública e privada?", a: "Pense assim: seu endereço Bitcoin (da chave pública) é como o número do seu cofre de vidro em uma praça. Todos podem ver o cofre e colocar dinheiro dentro. Sua chave privada é a única chave física que abre esse cofre. Só você pode usá-la para tirar o dinheiro de dentro. Guarde-a bem!" },
+                        { q: "O que é exatamente esse 'blockchain'?", a: "É um livro-caixa digital, mas com superpoderes. É uma 'corrente de blocos' onde cada bloco contém um lote de transações. Cada novo bloco é criptograficamente ligado ao anterior, criando um registro cronológico, imutável e transparente. Não é controlado por ninguém e verificado por todos." }
+                    ]
+                }
+            ]},
+            { level: 4, title: "A Fortaleza Digital: Segurança e Política Monetária", duels: [
+                {
+                    argumentoComum: "O que é essa história de 'minerar' bitcoins? Parece que estão criando dinheiro do nada e gastando uma energia absurda. É um desperdício.",
+                    contraponto: "A 'mineração' é o coração do sistema. Os mineradores não criam dinheiro 'do nada'; eles são recompensados por um trabalho essencial: <b>verificar transações e proteger a rede</b>. O gasto de energia é o que garante a segurança do sistema, substituindo a necessidade de bancos, prédios e exércitos.",
+                    conceitoChave: "PROVA DE ESFORÇO (PROOF-OF-WORK): É o mecanismo de segurança. Para adicionar um novo bloco, os mineradores devem competir para resolver um problema matemático difícil, o que exige um enorme gasto de energia (esforço). O primeiro a resolver, prova seu trabalho para a rede, adiciona o bloco e recebe a recompensa.",
+                    penseAssim: "Imagine uma loteria global a cada 10 minutos. Milhares de computadores gastam energia para adivinhar o número vencedor. O primeiro que acerta, ganha o prêmio (novos bitcoins) e o direito de oficializar o último lote de transações. Esse esforço colossal torna a 'loteria' (o blockchain) segura, pois para fraudar um resultado, um trapaceiro teria que 'ganhar' na loteria várias vezes seguidas.",
+                    duvidas: [
+                        { q: "Quem controla a emissão dos novos bitcoins?", a: "Ninguém e todo mundo. As regras estão no código. A emissão é previsível e decrescente. A recompensa dos mineradores é cortada pela metade a cada 4 anos, no <b>'halving'</b>, garantindo que a oferta total nunca ultrapasse 21 milhões. É uma política monetária baseada em matemática, não em políticos." },
+                        { q: "E se um grupo de mineradores atacar a rede (Ataque de 51%)?", a: "Seria extremamente caro e, se bem-sucedido, destruiria a confiança na rede, fazendo o preço do Bitcoin despencar. Seria como um grande acionista queimar a própria fábrica. É economicamente irracional para os mineradores, que têm um grande investimento no sucesso do ecossistema." }
+                    ]
+                }
+            ]},
+            { level: 5, title: "Teoria Econômica: O Valor e a Escassez", duels: [
+                {
+                    argumentoComum: "Bitcoin não tem valor intrínseco. É apenas código. Não é algo 'real' como o ouro.",
+                    contraponto: "Essa crítica parte de um equívoco. O valor não é 'intrínseco' a um objeto, mas sim <b>subjetivo</b>, atribuído pelas pessoas com base na sua utilidade percebida. O Bitcoin é valorizado por suas <b>propriedades intrínsecas (matemáticas)</b>, que lhe dão atributos monetários superiores, como escassez, portabilidade e divisibilidade.",
+                    conceitoChave: "PROPRIEDADES VS. VALOR: O ouro tem propriedades (denso, maleável, não corrói). As pessoas atribuem valor a essas propriedades. O Bitcoin também tem propriedades (digital, escasso, sem fronteiras, incensurável). As pessoas atribuem valor a estas novas propriedades. O valor não está no objeto, mas em para que ele serve.",
+                    penseAssim: "Uma nota de R$100 é um pedaço de papel. Seu 'valor intrínseco' é quase zero. Você não a valoriza pelo papel, mas pelo que ela pode comprar. O mesmo se aplica ao Bitcoin: as pessoas não o valorizam pelos 'bits e bytes', mas pela liberdade e eficiência que ele proporciona.",
+                    duvidas: [
+                        { q: "Mas o dinheiro não precisa ter um 'lastro'?", a: "O lastro no ouro servia para uma única coisa: garantir <b>escassez</b> e limitar a impressão de dinheiro pelos governos. O Bitcoin não precisa de um lastro externo porque sua escassez é sua característica fundamental, garantida por seu próprio código. Seu lastro é a matemática." },
+                        { q: "Intangível por intangível, por que o Bitcoin é diferente do dinheiro do banco?", a: "Pela <b>escassez autêntica</b>. A natureza intangível do dinheiro bancário permitiu sua criação quase ilimitada. A do Bitcoin foi projetada para garantir o oposto: uma escassez absoluta e matematicamente assegurada. É o primeiro bem digital que não pode ser copiado." }
+                    ]
+                }
+            ]},
+            { level: 6, title: "Teoria Econômica: A Origem do Dinheiro", duels: [
+                {
+                    argumentoComum: "Mesmo que eu aceite que o valor é subjetivo, como algo que nunca existiu antes pode se tornar dinheiro? Dinheiro não é algo criado por lei?",
+                    contraponto: "Pelo contrário. O dinheiro nunca foi criado por lei, ele surge espontaneamente do mercado. A teoria econômica explica exatamente como esse processo acontece, e o Bitcoin é a primeira vez na história que podemos observar esse fenômeno acontecer em tempo real, com todos os dados registrados.",
+                    conceitoChave: "O TEOREMA DA REGRESSÃO: Proposto por Ludwig von Mises, este teorema explica que um bem só se torna um meio de troca se, <b>antes</b>, as pessoas já o valorizavam por outro motivo (uso não monetário). Ninguém aceitaria algo em troca se não tivesse certeza de que outra pessoa o aceitaria depois, ou se ele não tivesse nenhuma utilidade própria.",
+                    penseAssim: "Pense em conchas raras numa tribo antiga. Antes de serem usadas para comprar comida, elas já eram desejadas como <b>enfeites e colecionáveis</b>. Por serem bonitas e raras, tinham um 'valor de uso' ornamental. Por causa disso, as pessoas começaram a aceitá-las em troca, sabendo que poderiam usá-las como enfeite ou trocá-las com outra pessoa que também as queria. O Bitcoin foi primeiro um 'colecionável digital' para um nicho, e só depois começou a ser usado como dinheiro.",
+                    duvidas: [
+                        { q: "Qual era o 'uso não monetário' do Bitcoin no início?", a: "Seu primeiro uso foi o de um <b>ativo digital colecionável e de protesto</b>. Era desejado por entusiastas de tecnologia por sua elegância e inovação, por libertários como um símbolo contra o sistema financeiro, e por criptógrafos por sua robustez. Esse desejo inicial por 'consumo direto' deu a ele seu primeiro valor." },
+                        { q: "Então o valor do Bitcoin hoje ainda depende desse uso inicial?", a: "Não. Uma vez que o bem se torna amplamente aceito como meio de troca, seu valor passa a depender principalmente dessa função monetária. O valor do ouro hoje não depende mais de seu uso como enfeite, mas de seu papel como ativo monetário global. O mesmo acontece com o Bitcoin." }
+                    ]
+                }
+            ]},
+            { level: 7, title: "Mitos e Objeções: Volatilidade", duels: [
+                {
+                    argumentoComum: "É instável demais para ser dinheiro. O preço sobe e desce o tempo todo, é pura especulação e uma bolha prestes a estourar.",
+                    contraponto: "A alta volatilidade é um sintoma de sua juventude. É um ativo global com um mercado ainda pequeno descobrindo seu preço. À medida que a adoção e a liquidez aumentam, a tendência é que a volatilidade diminua. A bolha da internet não decretou o fim da internet; a volatilidade é um desafio de crescimento, não uma falha fundamental.",
+                    conceitoChave: "AS TRÊS FUNÇÕES DO DINHEiro: Para ser considerado um dinheiro maduro, um ativo precisa servir como: 1) Meio de Troca (para comprar coisas), 2) Reserva de Valor (para guardar riqueza) e 3) Unidade de Conta (para precificar bens). O Bitcoin já funciona bem nas duas primeiras funções. A terceira ainda é um desafio devido à volatilidade.",
+                    penseAssim: "Imagine uma escada. O Bitcoin está subindo os degraus para se tornar um dinheiro completo. Ele já pisou firme nos degraus de 'Meio de Troca' e 'Reserva de Valor'. O degrau 'Unidade de Conta' é mais alto e escorregadio, e ele só chegará lá quando a escada parar de balançar tanto (quando a volatilidade diminuir).",
+                    duvidas: [
+                        { q: "Mas uma bolha não prova que não tem valor?", a: "Não. Quase toda grande tecnologia nova passa por um ciclo de euforia e bolha. A bolha das 'ponto-com' nos anos 2000 não significou que a internet era inútil, apenas que as expectativas iniciais foram exageradas. A tecnologia subjacente permaneceu e mudou o mundo." },
+                        { q: "Como posso usar algo tão volátil para comprar um café?", a: "Para transações do dia-a-dia, a volatilidade importa menos. Você pode comprar a quantia exata de bitcoin necessária segundos antes de pagar, e o vendedor pode convertê-la de volta para sua moeda local instantaneamente. O sistema funciona como um trilho de pagamento eficiente, mesmo que você não 'guarde' a moeda por muito tempo." }
+                    ]
+                }
+            ]},
+             { level: 8, title: "Mitos e Objeções: Deflação e Crime", duels: [
+                {
+                    argumentoComum: "A oferta fixa do Bitcoin é um defeito, não uma qualidade. Isso vai causar uma deflação terrível que paralisará a economia, pois ninguém vai querer gastar uma moeda que só se valoriza.",
+                    contraponto: "A ideia de que uma economia precisa de uma oferta monetária crescente (inflação) é um mito. Uma moeda forte que ganha poder de compra com o tempo (o que chamam de 'deflação') incentiva a poupança e o investimento consciente, que são a base da prosperidade real, em vez do consumo movido a dívida.",
+                    conceitoChave: "INFLAÇÃO VS. DEFLAÇÃO DE PREÇOS: <b>Inflação</b> é o aumento da oferta de dinheiro, que faz os preços subirem. É um imposto invisível que corrói seu poder de compra. <b>Deflação de preços</b>, em um sistema de moeda forte, significa que os preços das coisas caem com o tempo. Seu salário passa a comprar mais, não menos. É o oposto do que vivenciamos hoje.",
+                    penseAssim: "Pense na tecnologia. O preço dos computadores e celulares despenca ao longo dos anos, enquanto a qualidade aumenta. Essa 'deflação' no setor de tecnologia não paralisou a indústria, pelo contrário, tornou a tecnologia acessível a todos. Uma moeda forte aplicaria essa mesma lógica a toda a economia.",
+                    duvidas: [
+                        { q: "E o uso para atividades criminosas, como no Silk Road?", a: "O dinheiro vivo sempre foi, e continua sendo, a ferramenta preferida para o crime, por ser anônimo e não rastreável. O Bitcoin, por ter um registro público e permanente (o blockchain), é na verdade <b>pseudônimo</b>. Uma vez que uma identidade é ligada a um endereço, todo o seu histórico financeiro pode ser investigado, tornando-o uma ferramenta arriscada para criminosos." },
+                        { q: "Então ele não é anônimo?", a: "Não. Ele permite o uso de pseudônimos. Pense que todos podem ver as transações entre 'contas numeradas', mas não sabem quem são os donos dessas contas. No entanto, se você precisa se identificar para comprar bitcoin em uma corretora, ou se sua atividade na rede for analisada, seu pseudônimo pode ser quebrado." }
+                    ]
+                }
+            ]},
+            { level: 9, title: "O Futuro da Moeda", duels: [
+                {
+                    argumentoComum: "Isso tudo é uma utopia. Na prática, os governos nunca permitirão que uma moeda concorrente ameace seu monopólio. Eles vão simplesmente proibi-lo e acabar com a brincadeira.",
+                    contraponto: "Essa é a questão central. Todas as propostas de reforma monetária do passado falharam porque dependiam de <b>permissão política</b>. A grande força do Bitcoin é que ele não pede permissão; ele contorna o poder proibidor do estado. Governos podem regular as 'pontes' (corretoras), mas proibir uma rede P2P global é como tentar proibir a chuva ou a internet.",
+                    conceitoChave: "SEPARAÇÃO ENTRE ESTADO E MOEDA: O Bitcoin representa a primeira oportunidade prática de separar o Estado da moeda. A história mostra que, quando tem o poder de imprimir dinheiro, nenhum governo resiste à tentação, causando inflação e crises. Ao oferecer uma alternativa apolítica e com regras imutáveis, o Bitcoin impõe uma concorrência real.",
+                    penseAssim: "Pense na <b>separação entre Igreja e Estado</b>. Foi uma ideia revolucionária que garantiu a liberdade de crença. A separação entre Estado e Moeda é uma ideia similar para o século 21. O Bitcoin não é uma proposta política para ser votada; é uma ferramenta tecnológica que permite essa separação na prática, garantindo a liberdade financeira.",
+                    duvidas: [
+                        { q: "Mas sem regulação, não é a lei da selva?", a: "É preciso distinguir legitimidade legal de legitimidade de mercado. A legitimidade essencial vem da aceitação voluntária por pessoas e empresas que o usam por suas vantagens. A adesão ao Bitcoin está se tornando um imperativo de mercado, independentemente da postura de reguladores." },
+                        { q: "E a concorrência? O Bitcoin não pode ser substituído?", a: "A competição é livre e saudável. No entanto, o Bitcoin tem o 'efeito de rede' mais poderoso: é o mais conhecido, mais seguro, mais líquido e mais aceito. Uma nova moeda precisaria ser ordens de magnitude melhor para convencer milhões de pessoas a trocarem a 'internet' do dinheiro por uma 'intranet' desconhecida." }
+                    ]
+                }
+            ]},
+            { level: 10, title: "A Verdadeira Razão de Ser do Bitcoin", duels: [
+                {
+                    argumentoComum: "No final das contas, qual o propósito de tudo isso? É apenas uma forma mais eficiente de enviar dinheiro?",
+                    contraponto: "Ser um sistema de pagamento mais barato e rápido é uma de suas vantagens, mas sua verdadeira razão de ser é muito mais profunda: <b>impedir a tirania monetária</b>. O Bitcoin emergiu como uma resposta ao colapso da ordem monetária de 2008, à constante perda de privacidade financeira e a um sistema bancário prejudicial ao cidadão comum.",
+                    conceitoChave: "UMA FERRAMENTA DE LIBERDADE: O sucesso do Bitcoin não é, necessariamente, suplantar as moedas estatais. Basta que ele sirva como um 'firme e confiável empecilho ao abuso irrestrito do nosso dinheiro pelos governos'. Ele oferece uma saída, uma alternativa. A mera existência dessa saída impõe disciplina ao sistema tradicional.",
+                    penseAssim: "Imagine que você está em um barco e o capitão tem o controle total da comida e da água. O Bitcoin é como construir um pequeno bote salva-vidas robusto. Você pode não precisar usá-lo, mas saber que ele está ali, pronto para ser lançado a qualquer momento, faz com que o capitão pense duas vezes antes de abusar de seu poder. O bote é uma garantia de liberdade.",
+                    duvidas: [
+                        { q: "Qual a frase que resume a filosofia do Bitcoin?", a: "O próprio Satoshi Nakamoto escreveu: 'O problema básico com a moeda convencional é toda a confiança necessária para fazê-la funcionar. Precisamos confiar que o banco central não desvalorizará o dinheiro, mas a história está repleta de quebras dessa confiança'. O Bitcoin substitui essa necessidade de confiança em pessoas por prova matemática." },
+                        { q: "O que o futuro reserva para o Bitcoin?", a: "Ninguém sabe. Ele enfrentará desafios, volatilidade e a oposição de sistemas incumbentes. Mas a tecnologia subjacente, que permite a transferência de valor de forma descentralizada e segura, é uma inovação que veio para ficar. Como o livro sugere, é 'uma esperança e uma grata novidade'." }
+                    ]
+                }
+            ]}
+        ];
+
+        // --- GAME LOGIC ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const loadingScreen = document.getElementById('loading-screen');
+            const startScreen = document.getElementById('start-screen');
+            const gameScreen = document.getElementById('game-screen');
+            const endScreen = document.getElementById('end-screen');
+            const startBtn = document.getElementById('start-btn');
+            const restartBtn = document.getElementById('restart-btn');
+            
+            const uiControls = document.querySelector('.ui-controls');
+            const backBtn = document.getElementById('back-btn');
+            const openMenuBtn = document.getElementById('open-menu-btn');
+            const closeMenuBtn = document.getElementById('close-menu-btn');
+            const sideMenu = document.getElementById('side-menu');
+            const menuOverlay = document.getElementById('menu-overlay');
+            const menuNav = document.getElementById('menu-nav').querySelector('ul');
+            
+            const levelIndicatorEl = document.getElementById('level-indicator');
+            const levelTitleEl = document.getElementById('level-title');
+            const duelContainer = document.getElementById('duel-container');
+            const extraContentContainer = document.getElementById('extra-content-container');
+            const actionArea = document.getElementById('action-area');
+            
+            let currentState = {};
+            let historyStack = [];
+
+            // --- Loading Screen Logic ---
+            setTimeout(() => {
+                loadingScreen.style.opacity = '0';
+                setTimeout(() => {
+                    loadingScreen.classList.add('hidden');
+                    startScreen.classList.remove('hidden');
+                }, 500);
+            }, 2500);
+
+            // --- Menu Logic ---
+            function populateMenu() {
+                menuNav.innerHTML = '';
+                gameData.forEach((level, index) => {
+                    const li = document.createElement('li');
+                    const button = document.createElement('button');
+                    button.textContent = `${level.level}. ${level.title}`;
+                    button.onclick = () => {
+                        jumpToState({ level: index, duel: 0, step: 'argumento' });
+                        closeMenu();
+                    };
+                    li.appendChild(button);
+                    menuNav.appendChild(li);
+                });
+            }
+
+            function openMenu() {
+                sideMenu.classList.add('open');
+                menuOverlay.classList.add('open');
+            }
+            function closeMenu() {
+                sideMenu.classList.remove('open');
+                menuOverlay.classList.remove('open');
+            }
+
+            // --- Core Game Logic ---
+            const icons = {
+                sensoComum: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 01-.923 1.785A5.969 5.969 0 006 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337z" /></svg>`,
+                realidade: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" /></svg>`,
+                conceito: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>`,
+                analogy: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 5.25a7.5 7.5 0 001.5-1.593m-1.5 1.593a7.5 7.5 0 01-1.5-1.593m3.75 7.5a7.5 7.5 0 00-6-6.498M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" /></svg>`
+            };
+
+            function smoothScrollTo(element) {
+                const headerOffset = 80; // height of UI controls + some space
+                const elementPosition = element.getBoundingClientRect().top;
+                const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+                window.scrollTo({ top: offsetPosition, behavior: "smooth" });
+            }
+            
+            function createCard(id, title, icon, content, extraClass = '') {
+                const card = document.createElement('div');
+                card.id = id;
+                card.className = `duel-card ${extraClass}`;
+                card.innerHTML = `<h3 class="card-title ${extraClass}-title">${icon} ${title}</h3><div class="card-content">${content}</div>`;
+                return card;
+            }
+
+            function initGame() {
+                startScreen.classList.add('hidden');
+                endScreen.classList.add('hidden');
+                gameScreen.classList.remove('hidden');
+                uiControls.classList.remove('hidden');
+                populateMenu();
+                jumpToState({ level: 0, duel: 0, step: 'argumento' }, true);
+            }
+
+            function jumpToState(state, isInitial = false) {
+                if (!isInitial) {
+                    historyStack.push(currentState);
+                } else {
+                    historyStack = [];
+                }
+                renderState(state);
+
+                // MODIFICAÇÃO 2: Lógica de rolagem corrigida
+                if (!isInitial) {
+                    setTimeout(() => {
+                        const { step } = state;
+                        let targetElement;
+                        if (step === 'realidade') {
+                            targetElement = document.getElementById('realidade-card');
+                        } else if (step === 'conceito') {
+                            targetElement = document.getElementById('extra-content-container');
+                        } else if (step === 'duvidas') {
+                            targetElement = document.getElementById('doubts-section');
+                        }
+                        
+                        if (targetElement) {
+                            smoothScrollTo(targetElement);
+                        } else if (step === 'argumento') {
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }
+                    }, 50); 
+                }
+            }
+
+            function goBack() {
+                if (historyStack.length > 0) {
+                    const prevState = historyStack.pop();
+                    renderState(prevState, true); // isBack = true
+                }
+            }
+            
+            function renderState(state, isBack = false) {
+                currentState = state;
+                const { level, duel, step } = state;
+                const levelData = gameData[level];
+                const duelData = levelData.duels[duel];
+
+                // Update UI elements
+                backBtn.classList.toggle('hidden', historyStack.length === 0);
+                levelIndicatorEl.textContent = `NÍVEL ${levelData.level} de ${gameData.length}`;
+                levelTitleEl.textContent = levelData.title;
+                
+                // Clear containers
+                duelContainer.innerHTML = '';
+                extraContentContainer.innerHTML = '';
+                extraContentContainer.classList.add('hidden'); // Ocultar por padrão
+                actionArea.innerHTML = '';
+
+                // Render based on step
+                const argCard = createCard('senso-comum-card', 'Senso Comum', icons.sensoComum, duelData.argumentoComum);
+                duelContainer.appendChild(argCard);
+                if (step !== 'argumento') {
+                    const contraCard = createCard('realidade-card', 'A Realidade', icons.realidade, duelData.contraponto, 'realidade');
+                    duelContainer.appendChild(contraCard);
+                }
+                if (step === 'conceito' || step === 'duvidas') {
+                    buildExtraContent(duelData, step === 'duvidas');
+                    extraContentContainer.classList.remove('hidden');
+                }
+                
+                renderActionButtons(state);
+                
+                // Animate entrance
+                if (!isBack) {
+                    document.querySelectorAll('.duel-card, .extra-content-area, .btn').forEach(el => {
+                        el.classList.add('slide-up');
+                    });
+                }
+            }
+
+            function renderActionButtons(state) {
+                const { level, duel, step } = state;
+                const levelData = gameData[level];
+                const duelData = levelData.duels[duel];
+                let button;
+
+                if (step === 'argumento') {
+                    button = createButton('Revelar a Realidade', () => jumpToState({ ...state, step: 'realidade' }));
+                } else if (step === 'realidade') {
+                    button = createButton('Conceito-Chave', () => jumpToState({ ...state, step: 'conceito' }));
+                } else if (step === 'conceito') {
+                    if (duelData.duvidas && duelData.duvidas.length > 0) {
+                        button = createButton('Mas...', () => jumpToState({ ...state, step: 'duvidas' }), 'btn-secondary');
+                    } else {
+                        button = createButton('Continuar', getNextStep);
+                    }
+                } else if (step === 'duvidas') {
+                    button = createButton('Continuar', getNextStep);
+                }
+
+                if (button) {
+                    actionArea.appendChild(button);
+                }
+            }
+            
+            function createButton(text, onClick, extraClass = '') {
+                const button = document.createElement('button');
+                button.className = `btn ${extraClass}`;
+                button.textContent = text;
+                button.onclick = onClick;
+                return button;
+            }
+            
+            function getNextStep() {
+                const { level, duel } = currentState;
+                if (duel < gameData[level].duels.length - 1) {
+                    jumpToState({ level, duel: duel + 1, step: 'argumento' });
+                } else if (level < gameData.length - 1) {
+                    jumpToState({ level: level + 1, duel: 0, step: 'argumento' });
+                } else {
+                    showEndScreen();
+                }
+            }
+
+            function buildExtraContent(duelData, showDoubts) {
+                extraContentContainer.innerHTML = `
+                    <div class="extra-content-area">
+                        <div class="key-concept">
+                            <h4 class="section-title key-concept-title">${icons.conceito} Conceito-Chave</h4>
+                            <p>${duelData.conceitoChave}</p>
+                        </div>
+                        <div class="analogy">
+                             <h4 class="section-title analogy-title">${icons.analogy} Pense Assim:</h4>
+                            <p>${duelData.penseAssim}</p>
+                        </div>
+                        <div id="doubts-section" class="${showDoubts ? '' : 'hidden'}">
+                            <div id="accordion-container"></div>
+                        </div>
+                    </div>
+                `;
+                const accordionContainer = document.getElementById('accordion-container');
+                duelData.duvidas.forEach(duvida => {
+                    const item = document.createElement('div');
+                    item.className = 'accordion-item';
+                    item.innerHTML = `<button class="accordion-button"><span>${duvida.q}</span><span class="arrow">▼</span></button><div class="accordion-content"><p>${duvida.a}</p></div>`;
+                    accordionContainer.appendChild(item);
+                });
+                addAccordionListeners();
+            }
+
+            function addAccordionListeners() {
+                document.querySelectorAll('.accordion-button').forEach(button => {
+                    button.addEventListener('click', () => {
+                        const content = button.nextElementSibling;
+                        const wasActive = button.classList.contains('active');
+                        
+                        document.querySelectorAll('.accordion-button.active').forEach(b => {
+                            b.classList.remove('active');
+                            b.nextElementSibling.style.maxHeight = null;
+                            b.nextElementSibling.style.padding = '0 15px';
+                        });
+
+                        if (!wasActive) {
+                            button.classList.add('active');
+                            content.style.maxHeight = content.scrollHeight + "px";
+                            content.style.padding = '10px 15px 10px 15px';
+                            setTimeout(() => { smoothScrollTo(button); }, 350);
+                        }
+                    });
+                });
+            }
+            
+            function showEndScreen() {
+                gameScreen.classList.add('hidden');
+                uiControls.classList.add('hidden');
+                endScreen.classList.remove('hidden');
+                endScreen.classList.add('fade-in');
+            }
+
+            // Event Listeners
+            startBtn.addEventListener('click', initGame);
+            restartBtn.addEventListener('click', () => {
+                endScreen.classList.add('hidden');
+                initGame();
+            });
+            backBtn.addEventListener('click', goBack);
+            openMenuBtn.addEventListener('click', openMenu);
+            closeMenuBtn.addEventListener('click', closeMenu);
+            menuOverlay.addEventListener('click', closeMenu);
+        });
+    </script>
+</body>
+</html>
