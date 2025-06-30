@@ -18,6 +18,8 @@
             --analogy-bg: rgba(247, 147, 26, 0.05);
             --font-main: 'Poppins', sans-serif;
             --border-color: #333;
+            --success-green: #28a745;
+            --danger-red: #dc3545;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -65,8 +67,8 @@
         @keyframes spin { from { transform: rotateY(0deg); } to { transform: rotateY(360deg); } }
 
 
-        /* --- Start & End Screens --- */
-        #start-screen, #end-screen {
+        /* --- Start, Quiz & End Screens --- */
+        #start-screen, #quiz-screen, #end-screen {
             text-align: center; animation: fadeIn 1s ease-in-out; max-width: 600px;
         }
         .logo-container { margin-bottom: 20px; }
@@ -76,9 +78,9 @@
             font-size: 48px; font-weight: bold; color: white; margin: 0 auto;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.2); transform: rotate(-15deg);
         }
-        #start-screen h1, #end-screen h1 { font-size: 2.2rem; color: white; margin-bottom: 10px; }
-        #start-screen h2, #end-screen h2 { font-size: 1.5rem; color: var(--bitcoin-orange); margin-bottom: 15px; font-weight: 600; }
-        #start-screen p, #end-screen p { font-size: 1.1rem; color: var(--text-muted); margin: 0 auto 30px auto; }
+        #start-screen h1, #quiz-screen h1, #end-screen h1 { font-size: 2.2rem; color: white; margin-bottom: 10px; }
+        #start-screen h2, #quiz-screen h2, #end-screen h2 { font-size: 1.5rem; color: var(--bitcoin-orange); margin-bottom: 15px; font-weight: 600; }
+        #start-screen p, #quiz-screen p, #end-screen p { font-size: 1.1rem; color: var(--text-muted); margin: 0 auto 30px auto; }
 
         .btn {
             background-color: var(--bitcoin-orange); color: white; border: none; padding: 15px 30px;
@@ -90,6 +92,27 @@
         .btn:active { transform: translateY(0); }
         .btn-secondary { background-color: var(--card-bg); box-shadow: none; margin-top: 20px; }
         .btn-secondary:hover { background-color: #3a3a3a; }
+        
+        /* --- Quiz Specific Styles --- */
+        #quiz-question-container { margin-top: 40px; }
+        .quiz-question { font-size: 1.3rem; font-weight: 600; margin-bottom: 20px; }
+        .quiz-answers { display: flex; flex-direction: column; gap: 15px; }
+        .quiz-answers button {
+            background-color: var(--card-bg); color: var(--text-color); border: 1px solid var(--border-color);
+            padding: 15px; border-radius: 12px; width: 100%; text-align: center;
+            font-size: 1.1rem; cursor: pointer; transition: all 0.2s ease;
+        }
+        .quiz-answers button:not(:disabled):hover {
+            background-color: var(--border-color);
+            transform: scale(1.02);
+        }
+        .quiz-answers button.correct { background-color: var(--success-green); color: white; border-color: var(--success-green); }
+        .quiz-answers button.incorrect { background-color: var(--danger-red); color: white; border-color: var(--danger-red); }
+        .quiz-answers button:disabled { cursor: not-allowed; opacity: 0.7; }
+        #quiz-feedback {
+            margin-top: 20px; min-height: 40px; font-size: 1rem; color: var(--text-muted);
+        }
+
 
         /* --- UI Controls: Menu and Back Button --- */
         .ui-controls {
@@ -136,7 +159,7 @@
         
 
         /* --- Game Screen --- */
-        #game-screen { width: 100%; max-width: 800px; padding-top: 60px; } /* Padding for UI controls */
+        #game-screen { width: 100%; max-width: 800px; padding-top: 60px; }
         .level-progress { text-align: center; margin-bottom: 20px; animation: fadeIn 0.5s; }
         .level-indicator { font-weight: 600; color: var(--bitcoin-orange); }
         .level-title { text-align: center; font-size: 1.8rem; margin-bottom: 30px; color: white; animation: fadeIn 0.5s; }
@@ -163,6 +186,22 @@
             margin-bottom: 40px;
         }
         
+        /* --- Provocation Box ("Espelho, Espelho Meu...") --- */
+        .provocation-box {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: rgba(0,0,0,0.2);
+            border-left: 3px solid var(--concept-blue);
+            border-radius: 8px;
+        }
+        .provocation-box p {
+            font-style: italic;
+            color: var(--text-muted);
+        }
+        .provocation-box b {
+             color: var(--concept-blue);
+        }
+
         /* --- Key Concept, Analogy & Doubts Area --- */
         .extra-content-area {
             margin-top: 30px; background-color: rgba(0,0,0,0.2);
@@ -208,7 +247,7 @@
         
         /* --- Responsiveness --- */
         @media (min-width: 768px) {
-            #start-screen h1 { font-size: 3.5rem; }
+            #start-screen h1, #quiz-screen h1 { font-size: 3.5rem; }
         }
     </style>
 </head>
@@ -246,10 +285,20 @@
         <div id="start-screen" class="hidden">
             <div class="logo-container"><div class="logo">₿</div></div>
             <h1>Bitcoin</h1>
-            <!-- MODIFICAÇÃO 1: Textos da página inicial alterados -->
             <h2>Para quem ainda não entendeu qual é a real do Bitcoin...</h2>
-            <p>Uma jornada interativa baseada no livro "Bitcoin: A Moeda na Era Digital", de Fernando Ulrich. Todos nós já nos perguntamos as mesmas coisas, por isso criamos esse passo a passo...</p>
+            <p>Uma jornada interativa para você perceber que deveria duvidar mais do dinheiro que você já usa do que do bitcoin...</p>
             <button id="start-btn" class="btn">Começar a Jornada</button>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div id="quiz-screen" class="hidden">
+             <h2>Antes de começar...</h2>
+             <p>Perguntas sobre o dinheiro que usamos todos os dias...</p>
+             <div id="quiz-question-container">
+                 <p id="quiz-question" class="quiz-question"></p>
+                 <div id="quiz-answers" class="quiz-answers"></div>
+                 <div id="quiz-feedback"></div>
+             </div>
         </div>
 
         <!-- Game Screen -->
@@ -273,11 +322,11 @@
     </div>
 
     <script>
-        // --- GAME DATA (Conteúdo intacto) ---
+        // --- GAME DATA (Conteúdo expandido com novos níveis e provocações) ---
         const gameData = [
             { level: 1, title: "O Dinheiro que Usamos: A Ilusão da Realidade", duels: [
                 {
-                    argumentoComum: "Meu dinheiro é o Real, emitido e garantido pelo governo. Ele é físico (notas/moedas) ou um saldo seguro no banco. É um sistema sólido.",
+                    argumentoComum: "Meu dinheiro é 'real', emitido e garantido pelo governo. Ele é físico (notas/moedas) ou um saldo seguro no banco. É um sistema sólido.",
                     contraponto: "Essa percepção, embora comum, esconde a verdadeira natureza do nosso dinheiro. A maior parte do que usamos não é física. São apenas dígitos nos sistemas dos bancos, a chamada <b>moeda escritural</b>. No Reino Unido, ela representa mais de 95% de todo o dinheiro. Nosso sistema já é majoritariamente digital e intangível, mas de uma forma centralizada e frágil.",
                     conceitoChave: "RESERVAS FRACIONÁRIAS: É o mecanismo que permite aos bancos comerciais criar dinheiro. Eles são obrigados a guardar apenas uma fração (a 'reserva' ou 'compulsório') dos depósitos e podem emprestar o restante. Ao emprestar, criam um novo depósito, expandindo a oferta monetária.",
                     penseAssim: "Imagine que você deposita <b>R$100</b> no banco. O banco guarda R$10 e empresta R$90 para João. Agora, você tem R$100 na sua conta, e João tem R$90 na dele. A economia, que antes tinha R$100, agora tem R$190 em depósitos. O dinheiro foi criado a partir de uma dívida, sem que nova riqueza fosse produzida.",
@@ -350,8 +399,8 @@
             { level: 7, title: "Mitos e Objeções: Volatilidade", duels: [
                 {
                     argumentoComum: "É instável demais para ser dinheiro. O preço sobe e desce o tempo todo, é pura especulação e uma bolha prestes a estourar.",
-                    contraponto: "A alta volatilidade é um sintoma de sua juventude. É um ativo global com um mercado ainda pequeno descobrindo seu preço. À medida que a adoção e a liquidez aumentam, a tendência é que a volatilidade diminua. A bolha da internet não decretou o fim da internet; a volatilidade é um desafio de crescimento, não uma falha fundamental.",
-                    conceitoChave: "AS TRÊS FUNÇÕES DO DINHEiro: Para ser considerado um dinheiro maduro, um ativo precisa servir como: 1) Meio de Troca (para comprar coisas), 2) Reserva de Valor (para guardar riqueza) e 3) Unidade de Conta (para precificar bens). O Bitcoin já funciona bem nas duas primeiras funções. A terceira ainda é um desafio devido à volatilidade.",
+                    contraponto: "A alta volatilidade é um sintoma de sua juventude. É um ativo global com um mercado ainda pequeno descobrindo seu preço. À medida que a adoção e a liquidez aumentam, a tendência é que a volatilidade diminua. A bolha da internet não decretou o fim da internet; a volatilidade é um desafio de crescimento, não uma falha fundamental. <div class='provocation-box'><p><b>Pense nisto:</b> O Bitcoin é volátil em relação ao Real ou Dólar. Mas o Real, é volátil em relação a quê? Em relação a bens e serviços, ele tem uma volatilidade constante e previsível: <b>para baixo</b>. Uma nota de R$100 de 20 anos atrás compra muito menos hoje. Qual volatilidade é pior: a que pode ir para cima ou para baixo, ou a que <b>garantidamente</b> só vai para baixo?</p></div>",
+                    conceitoChave: "AS TRÊS FUNÇÕES DO DINHEIRO: Para ser considerado um dinheiro maduro, um ativo precisa servir como: 1) Meio de Troca (para comprar coisas), 2) Reserva de Valor (para guardar riqueza) e 3) Unidade de Conta (para precificar bens). O Bitcoin já funciona bem nas duas primeiras funções. A terceira ainda é um desafio devido à volatilidade.",
                     penseAssim: "Imagine uma escada. O Bitcoin está subindo os degraus para se tornar um dinheiro completo. Ele já pisou firme nos degraus de 'Meio de Troca' e 'Reserva de Valor'. O degrau 'Unidade de Conta' é mais alto e escorregadio, e ele só chegará lá quando a escada parar de balançar tanto (quando a volatilidade diminuir).",
                     duvidas: [
                         { q: "Mas uma bolha não prova que não tem valor?", a: "Não. Quase toda grande tecnologia nova passa por um ciclo de euforia e bolha. A bolha das 'ponto-com' nos anos 2000 não significou que a internet era inútil, apenas que as expectativas iniciais foram exageradas. A tecnologia subjacente permaneceu e mudou o mundo." },
@@ -362,7 +411,7 @@
              { level: 8, title: "Mitos e Objeções: Deflação e Crime", duels: [
                 {
                     argumentoComum: "A oferta fixa do Bitcoin é um defeito, não uma qualidade. Isso vai causar uma deflação terrível que paralisará a economia, pois ninguém vai querer gastar uma moeda que só se valoriza.",
-                    contraponto: "A ideia de que uma economia precisa de uma oferta monetária crescente (inflação) é um mito. Uma moeda forte que ganha poder de compra com o tempo (o que chamam de 'deflação') incentiva a poupança e o investimento consciente, que são a base da prosperidade real, em vez do consumo movido a dívida.",
+                    contraponto: "A ideia de que uma economia precisa de uma oferta monetária crescente (inflação) é um mito. Uma moeda forte que ganha poder de compra com o tempo (o que chamam de 'deflação') incentiva a poupança e o investimento consciente, que são a base da prosperidade real, em vez do consumo movido a dívida. <div class='provocation-box'><p><b>Pense nisto:</b> Critica-se o Bitcoin por ser usado em crimes. No entanto, a ONU estima que a lavagem de dinheiro no sistema financeiro tradicional movimenta trilhões de dólares por ano. O dinheiro vivo é o rei do anonimato. O Bitcoin deixa um rastro público e permanente (o blockchain). Qual sistema é, estruturalmente, <b>mais amigável ao crime em larga escala?</b></p></div>",
                     conceitoChave: "INFLAÇÃO VS. DEFLAÇÃO DE PREÇOS: <b>Inflação</b> é o aumento da oferta de dinheiro, que faz os preços subirem. É um imposto invisível que corrói seu poder de compra. <b>Deflação de preços</b>, em um sistema de moeda forte, significa que os preços das coisas caem com o tempo. Seu salário passa a comprar mais, não menos. É o oposto do que vivenciamos hoje.",
                     penseAssim: "Pense na tecnologia. O preço dos computadores e celulares despenca ao longo dos anos, enquanto a qualidade aumenta. Essa 'deflação' no setor de tecnologia não paralisou a indústria, pelo contrário, tornou a tecnologia acessível a todos. Uma moeda forte aplicaria essa mesma lógica a toda a economia.",
                     duvidas: [
@@ -371,7 +420,33 @@
                     ]
                 }
             ]},
-            { level: 9, title: "O Futuro da Moeda", duels: [
+            // NOVO NÍVEL 9
+            { level: 9, title: "A Manada Chegou: Adoção Institucional", duels: [
+                {
+                    argumentoComum: "Isso é só para entusiastas de tecnologia e investidores de varejo. Nenhuma empresa séria, fundo de investimento ou país adotaria algo tão arriscado.",
+                    contraponto: "Essa percepção está anos atrasada. Enquanto o debate público se focava no preço, as maiores instituições financeiras do mundo e até nações soberanas começaram a se mover. A pergunta não é mais 'se', mas 'como' e 'quando' eles vão se integrar. O jogo mudou de especulação individual para <b>alocação estratégica de capital</b>.",
+                    conceitoChave: "ATIVO DE TESOURARIA E O EFEITO DOS ETFs: Empresas como a MicroStrategy foram pioneiras em adicionar Bitcoin aos seus balanços como proteção contra a desvalorização da moeda. Mais recentemente, o lançamento de <b>ETFs de Bitcoin Spot</b> por gigantes como BlackRock e Fidelity abriu as portas para que trilhões de dólares do mercado tradicional possam ter exposição ao Bitcoin de forma regulada e simples.",
+                    penseAssim: "Imagine que o Bitcoin é um novo tipo de 'imóvel digital' em uma avenida principal que acabou de ser descoberta. No início, só os aventureiros compraram terrenos. Agora, as maiores construtoras do mundo (BlackRock, Fidelity) estão construindo prédios ali, e os investidores mais conservadores podem simplesmente comprar um apartamento (um ETF) sem precisar se preocupar em construir o prédio inteiro.",
+                    duvidas: [
+                        { q: "Por que um país como El Salvador adotaria o Bitcoin?", a: "Para um país sem moeda própria e dependente do dólar, o Bitcoin oferece uma saída. Ele reduz drasticamente os custos de remessas (dinheiro enviado por emigrantes), promove a inclusão financeira para 70% da população sem conta bancária e os posiciona como um hub de inovação tecnológica." },
+                        { q: "Se os grandes bancos estão entrando, isso não vai contra a ideia de descentralização?", a: "É um paradoxo interessante. A rede Bitcoin em si permanece descentralizada. A entrada de instituições aumenta a legitimidade e a liquidez. O risco é a centralização da 'posse' em poucas mãos. No entanto, a beleza do Bitcoin é que você ainda pode ter a sua própria chave privada, garantindo sua soberania. A escolha é sua." }
+                    ]
+                }
+            ]},
+            // NOVO NÍVEL 10
+            { level: 10, title: "Além da Moeda: A Revolução Blockchain", duels: [
+                {
+                    argumentoComum: "Ok, entendi o Bitcoin. Mas essa tecnologia 'blockchain' só serve para criar moedas digitais. Parece uma solução em busca de um problema.",
+                    contraponto: "Essa é uma visão comum, mas é como olhar para a invenção da internet nos anos 90 e dizer que ela só serve para enviar e-mails. O Bitcoin foi a primeira aplicação. A ideia subjacente – um <b>registro de dados imutável, transparente e descentralizado</b> – tem aplicações que vão muito além do dinheiro.",
+                    conceitoChave: "CONTRATOS INTELIGENTES (SMART CONTRACTS): Pense em um contrato tradicional que se autoexecuta. Plataformas como a Ethereum usam a tecnologia blockchain para criar programas que rodam de forma autônoma e confiável, sem intermediários. Se a 'condição A' acontecer, então a 'ação B' é executada automaticamente. Isso está criando um novo universo de aplicações.",
+                    penseAssim: "O blockchain do Bitcoin é como um livro-caixa que só aceita 'débito e crédito'. Outros blockchains, como o da Ethereum, são como um computador global onde qualquer pessoa pode criar e rodar seus próprios 'aplicativos da verdade'. Um aplicativo pode ser um sistema de seguros onde o pagamento é liberado automaticamente se os dados de um voo mostrarem que ele atrasou. Outro pode ser um registro de propriedade de uma obra de arte digital (um NFT).",
+                    duvidas: [
+                        { q: "Me dê exemplos reais de uso do blockchain hoje.", a: "Claro! <b>1) Cadeia de Suprimentos:</b> Empresas como a Carrefour usam para rastrear a origem de alimentos, garantindo a qualidade. <b>2) Identidade Digital:</b> Projetos que permitem que você seja o dono dos seus dados, dando permissão seletiva para serviços. <b>3) NFTs e Propriedade Digital:</b> Artistas e criadores podem vender suas obras diretamente aos fãs, garantindo autenticidade e royalties." },
+                        { q: "Se o blockchain é tão bom, por que não vemos isso em todo lugar ainda?", a: "Pelas mesmas razões que a internet não substituiu tudo da noite para o dia. A tecnologia ainda está amadurecendo, enfrenta desafios de escalabilidade (velocidade) e usabilidade (complexidade para o usuário médio). Mas a base está sendo construída em alta velocidade, assim como a infraestrutura da internet foi nos anos 90." }
+                    ]
+                }
+            ]},
+            { level: 11, title: "O Futuro da Moeda", duels: [
                 {
                     argumentoComum: "Isso tudo é uma utopia. Na prática, os governos nunca permitirão que uma moeda concorrente ameace seu monopólio. Eles vão simplesmente proibi-lo e acabar com a brincadeira.",
                     contraponto: "Essa é a questão central. Todas as propostas de reforma monetária do passado falharam porque dependiam de <b>permissão política</b>. A grande força do Bitcoin é que ele não pede permissão; ele contorna o poder proibidor do estado. Governos podem regular as 'pontes' (corretoras), mas proibir uma rede P2P global é como tentar proibir a chuva ou a internet.",
@@ -383,7 +458,7 @@
                     ]
                 }
             ]},
-            { level: 10, title: "A Verdadeira Razão de Ser do Bitcoin", duels: [
+            { level: 12, title: "A Verdadeira Razão de Ser do Bitcoin", duels: [
                 {
                     argumentoComum: "No final das contas, qual o propósito de tudo isso? É apenas uma forma mais eficiente de enviar dinheiro?",
                     contraponto: "Ser um sistema de pagamento mais barato e rápido é uma de suas vantagens, mas sua verdadeira razão de ser é muito mais profunda: <b>impedir a tirania monetária</b>. O Bitcoin emergiu como uma resposta ao colapso da ordem monetária de 2008, à constante perda de privacidade financeira e a um sistema bancário prejudicial ao cidadão comum.",
@@ -397,10 +472,33 @@
             ]}
         ];
 
+        // --- QUIZ DATA ---
+        const quizData = [
+            {
+                question: "Quanto do 'dinheiro' no mundo você acha que existe na forma de notas e moedas físicas?",
+                answers: ["Mais de 50%", "Cerca de 20%", "Menos de 10%"],
+                correct: 2,
+                feedback: "Surpreso? Menos de 10% do dinheiro é físico. A maior parte já é digital, só que nos sistemas dos bancos."
+            },
+            {
+                question: "O Real (ou Dólar), tem seu valor garantido por qual ativo?",
+                answers: ["Reservas de Ouro", "Produção industrial do país", "Confiança no governo que o emite"],
+                correct: 2,
+                feedback: "Pois é... Desde 1971, as moedas são 'fiduciárias', ou seja, baseadas apenas na fé (confiança)."
+            },
+            {
+                question: "Nos últimos 50 anos, o poder de compra do seu dinheiro...",
+                answers: ["Aumentou", "Permaneceu estável", "Diminuiu"],
+                correct: 2,
+                feedback: "Exato. A inflação, ou seja, a emissão contínua de dinheiro, faz com que ele perca valor ano após ano."
+            }
+        ];
+        
         // --- GAME LOGIC ---
         document.addEventListener('DOMContentLoaded', () => {
             const loadingScreen = document.getElementById('loading-screen');
             const startScreen = document.getElementById('start-screen');
+            const quizScreen = document.getElementById('quiz-screen');
             const gameScreen = document.getElementById('game-screen');
             const endScreen = document.getElementById('end-screen');
             const startBtn = document.getElementById('start-btn');
@@ -419,9 +517,15 @@
             const duelContainer = document.getElementById('duel-container');
             const extraContentContainer = document.getElementById('extra-content-container');
             const actionArea = document.getElementById('action-area');
+
+            // Quiz elements
+            const quizQuestionEl = document.getElementById('quiz-question');
+            const quizAnswersEl = document.getElementById('quiz-answers');
+            const quizFeedbackEl = document.getElementById('quiz-feedback');
             
             let currentState = {};
             let historyStack = [];
+            let currentQuizQuestionIndex = 0;
 
             // --- Loading Screen Logic ---
             setTimeout(() => {
@@ -430,7 +534,7 @@
                     loadingScreen.classList.add('hidden');
                     startScreen.classList.remove('hidden');
                 }, 500);
-            }, 2500);
+            }, 1500); // Shorter loading time
 
             // --- Menu Logic ---
             function populateMenu() {
@@ -448,13 +552,53 @@
                 });
             }
 
-            function openMenu() {
-                sideMenu.classList.add('open');
-                menuOverlay.classList.add('open');
+            function openMenu() { sideMenu.classList.add('open'); menuOverlay.classList.add('open'); }
+            function closeMenu() { sideMenu.classList.remove('open'); menuOverlay.classList.remove('open'); }
+
+            // --- Quiz Logic ---
+            function startQuiz() {
+                startScreen.classList.add('hidden');
+                quizScreen.classList.remove('hidden');
+                currentQuizQuestionIndex = 0;
+                displayQuizQuestion();
             }
-            function closeMenu() {
-                sideMenu.classList.remove('open');
-                menuOverlay.classList.remove('open');
+
+            function displayQuizQuestion() {
+                quizFeedbackEl.innerHTML = '';
+                const questionData = quizData[currentQuizQuestionIndex];
+                quizQuestionEl.textContent = questionData.question;
+                quizAnswersEl.innerHTML = '';
+                questionData.answers.forEach((answer, index) => {
+                    const button = document.createElement('button');
+                    button.textContent = answer;
+                    button.onclick = () => handleQuizAnswer(index);
+                    quizAnswersEl.appendChild(button);
+                });
+            }
+            
+            function handleQuizAnswer(selectedIndex) {
+                const questionData = quizData[currentQuizQuestionIndex];
+                const buttons = quizAnswersEl.querySelectorAll('button');
+                buttons.forEach((btn, index) => {
+                    btn.disabled = true;
+                    if (index === questionData.correct) {
+                        btn.classList.add('correct');
+                    } else if (index === selectedIndex) {
+                        btn.classList.add('incorrect');
+                    }
+                });
+                
+                quizFeedbackEl.textContent = questionData.feedback;
+
+                setTimeout(() => {
+                    currentQuizQuestionIndex++;
+                    if (currentQuizQuestionIndex < quizData.length) {
+                        displayQuizQuestion();
+                    } else {
+                        quizScreen.classList.add('hidden');
+                        initGame();
+                    }
+                }, 5000); // Time to read feedback
             }
 
             // --- Core Game Logic ---
@@ -481,7 +625,6 @@
             }
 
             function initGame() {
-                startScreen.classList.add('hidden');
                 endScreen.classList.add('hidden');
                 gameScreen.classList.remove('hidden');
                 uiControls.classList.remove('hidden');
@@ -497,7 +640,6 @@
                 }
                 renderState(state);
 
-                // MODIFICAÇÃO 2: Lógica de rolagem corrigida
                 if (!isInitial) {
                     setTimeout(() => {
                         const { step } = state;
@@ -532,18 +674,15 @@
                 const levelData = gameData[level];
                 const duelData = levelData.duels[duel];
 
-                // Update UI elements
                 backBtn.classList.toggle('hidden', historyStack.length === 0);
                 levelIndicatorEl.textContent = `NÍVEL ${levelData.level} de ${gameData.length}`;
                 levelTitleEl.textContent = levelData.title;
                 
-                // Clear containers
                 duelContainer.innerHTML = '';
                 extraContentContainer.innerHTML = '';
-                extraContentContainer.classList.add('hidden'); // Ocultar por padrão
+                extraContentContainer.classList.add('hidden');
                 actionArea.innerHTML = '';
 
-                // Render based on step
                 const argCard = createCard('senso-comum-card', 'Senso Comum', icons.sensoComum, duelData.argumentoComum);
                 duelContainer.appendChild(argCard);
                 if (step !== 'argumento') {
@@ -557,7 +696,6 @@
                 
                 renderActionButtons(state);
                 
-                // Animate entrance
                 if (!isBack) {
                     document.querySelectorAll('.duel-card, .extra-content-area, .btn').forEach(el => {
                         el.classList.add('slide-up');
@@ -567,12 +705,11 @@
 
             function renderActionButtons(state) {
                 const { level, duel, step } = state;
-                const levelData = gameData[level];
-                const duelData = levelData.duels[duel];
+                const duelData = gameData[level].duels[duel];
                 let button;
 
                 if (step === 'argumento') {
-                    button = createButton('Revelar a Realidade', () => jumpToState({ ...state, step: 'realidade' }));
+                    button = createButton('Realidade', () => jumpToState({ ...state, step: 'realidade' }));
                 } else if (step === 'realidade') {
                     button = createButton('Conceito-Chave', () => jumpToState({ ...state, step: 'conceito' }));
                 } else if (step === 'conceito') {
@@ -585,9 +722,7 @@
                     button = createButton('Continuar', getNextStep);
                 }
 
-                if (button) {
-                    actionArea.appendChild(button);
-                }
+                if (button) { actionArea.appendChild(button); }
             }
             
             function createButton(text, onClick, extraClass = '') {
@@ -626,13 +761,15 @@
                     </div>
                 `;
                 const accordionContainer = document.getElementById('accordion-container');
-                duelData.duvidas.forEach(duvida => {
-                    const item = document.createElement('div');
-                    item.className = 'accordion-item';
-                    item.innerHTML = `<button class="accordion-button"><span>${duvida.q}</span><span class="arrow">▼</span></button><div class="accordion-content"><p>${duvida.a}</p></div>`;
-                    accordionContainer.appendChild(item);
-                });
-                addAccordionListeners();
+                if (duelData.duvidas) {
+                    duelData.duvidas.forEach(duvida => {
+                        const item = document.createElement('div');
+                        item.className = 'accordion-item';
+                        item.innerHTML = `<button class="accordion-button"><span>${duvida.q}</span><span class="arrow">▼</span></button><div class="accordion-content"><p>${duvida.a}</p></div>`;
+                        accordionContainer.appendChild(item);
+                    });
+                    addAccordionListeners();
+                }
             }
 
             function addAccordionListeners() {
@@ -665,10 +802,10 @@
             }
 
             // Event Listeners
-            startBtn.addEventListener('click', initGame);
+            startBtn.addEventListener('click', startQuiz);
             restartBtn.addEventListener('click', () => {
                 endScreen.classList.add('hidden');
-                initGame();
+                startScreen.classList.remove('hidden'); // Go back to start, not straight to game
             });
             backBtn.addEventListener('click', goBack);
             openMenuBtn.addEventListener('click', openMenu);
